@@ -9,7 +9,7 @@ from designlib.web.app import create_app
 
 @pytest.fixture
 def client():
-    return TestClient(create_app())
+    return TestClient(create_app(), base_url="http://127.0.0.1:8000")
 
 
 def test_empty_library_shows_empty_state(client):
