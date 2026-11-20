@@ -101,7 +101,7 @@ def test_gallery_does_not_wait_for_the_model(fake_semantic, library, monkeypatch
     from designlib.web.app import create_app
 
     monkeypatch.setattr(semantic, "warm_up", lambda: None)
-    client = TestClient(create_app())
+    client = TestClient(create_app(), base_url="http://127.0.0.1:8000")
     monkeypatch.setattr(semantic, "_model", None)  # model still loading
     page = client.get("/?q=spinner", headers={"HX-Request": "true"}).text
     assert "matched by meaning" not in page and "Ring loader" not in page
