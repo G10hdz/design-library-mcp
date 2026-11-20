@@ -16,8 +16,9 @@ from urllib.parse import urlencode
 
 import markdown
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.templating import Jinja2Templates
 from pydantic import ValidationError
 from starlette.datastructures import UploadFile  # what request.form() returns for files
@@ -43,6 +44,8 @@ from designlib.core.search import (
 )
 from designlib.core.taxonomy import BY_SLUG, grouped
 from designlib.web.preview import build_srcdoc, preview_kind
+
+SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
 
 HERE = Path(__file__).parent
 IMAGE_TYPES = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
@@ -96,6 +99,22 @@ def create_app() -> FastAPI:
         if request.url.path.startswith("/static/"):
             response.headers["Access-Control-Allow-Origin"] = "*"
         return response
+
+    @app.middleware("http")
+    async def same_origin_writes(request: Request, call_next):
+        """Listening on 127.0.0.1 doesn't stop other sites open in the browser from posting
+        here. Writes must come from the gallery's own pages (or a non-browser client that
+        sends no Origin). Sandboxed previews send Origin "null", so they are refused too."""
+        if request.method not in SAFE_METHODS:
+            origin = request.headers.get("origin")
+            own_origin = f"{request.url.scheme}://{request.headers.get('host', '')}"
+            cross_site = request.headers.get("sec-fetch-site") in ("cross-site", "same-site")
+            if (origin is not None and origin != own_origin) or cross_site:
+                return PlainTextResponse("Cross-origin request refused", status_code=403)
+        return await call_next(request)
+
+    # DNS rebinding: a page on evil.example can resolve its name to 127.0.0.1 and read us.
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=[config.HOST, "localhost"])
     config.assets_dir().mkdir(parents=True, exist_ok=True)
     # local_image values look like "assets/mine/x.png", so serve the library's assets/ at /assets
     app.mount("/assets", StaticFiles(directory=config.assets_dir().parent), name="assets")

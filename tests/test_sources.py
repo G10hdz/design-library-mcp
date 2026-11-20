@@ -45,7 +45,7 @@ def test_search_offset_and_count(seventy):
 
 
 def test_gallery_show_more(seventy):
-    client = TestClient(create_app())
+    client = TestClient(create_app(), base_url="http://127.0.0.1:8000")
     page = client.get("/?sort=title").text
     assert page.count('class="card ') == 60
     assert "offset=60" in page and "more=1" in page and "70 references" in page

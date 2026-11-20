@@ -122,7 +122,7 @@ def test_static_files_allow_sandboxed_previews():
 
     from designlib.web.app import create_app
 
-    client = TestClient(create_app())
+    client = TestClient(create_app(), base_url="http://127.0.0.1:8000")
     font = client.get("/static/vendor/framework7/icons.css")
     assert font.headers["access-control-allow-origin"] == "*"
     assert "access-control-allow-origin" not in client.get("/healthz").headers  # only static files

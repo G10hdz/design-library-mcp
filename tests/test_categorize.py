@@ -130,7 +130,7 @@ def test_filters_and_counts(mixed):
 
 
 def test_gallery_sidebar_and_tabs(mixed):
-    client = TestClient(create_app())
+    client = TestClient(create_app(), base_url="http://127.0.0.1:8000")
     page = client.get("/?platform=web").text
     assert 'value="hero" checked' not in page and "Hero" in page and 'id="sidebar"' in page
     live = client.get("/?platform=web&category=hero", headers={"HX-Request": "true"}).text
@@ -139,7 +139,7 @@ def test_gallery_sidebar_and_tabs(mixed):
 
 
 def test_edit_form_marks_categories_as_manual(mixed):
-    client = TestClient(create_app())
+    client = TestClient(create_app(), base_url="http://127.0.0.1:8000")
     form = {"title": "Hero A", "type": "component", "license": "MIT", "framework": "tailwind",
             "platform": "web", "categories": ["hero"]}
     client.post("/d/w-hero/edit", data=form)

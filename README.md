@@ -52,7 +52,7 @@ cd "C:\path\to\design-library-mcp"
 Both open http://127.0.0.1:8000 in your browser. Stop with **Ctrl+C**.
 If PowerShell says running scripts is disabled, use `start.cmd`, which doesn't need PowerShell.
 
-The gallery only listens on `127.0.0.1`, so other devices on your network cannot reach it.
+The gallery only listens on `127.0.0.1`, so other devices on your network cannot reach it. It also refuses writes that come from other sites open in your browser (cross-origin `Origin` or `Sec-Fetch-Site`) and any `Host` other than `127.0.0.1` or `localhost`, so a web page can't edit your library or read it through DNS rebinding.
 
 **You usually don't need to start it yourself:** while Claude is open, the MCP server also
 serves the gallery, so the `gallery_url` links Claude gives you always open. If the gallery is
